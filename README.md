@@ -1,4 +1,6 @@
-# GPS
+# 定位仪
+
+[打开定位仪](https://kunlun7210.github.io/gps/)
 
 面向 iPhone Safari 的定位与指南针网页应用。静态文件可直接部署到 GitHub Pages，无需构建或安装依赖。
 

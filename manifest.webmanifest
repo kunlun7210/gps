@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "GPS",
-  "short_name": "GPS",
+  "name": "定位仪",
+  "short_name": "定位仪",
   "lang": "zh-CN",
   "description": "随身查看定位、海拔和朝向。",
   "start_url": "./",
