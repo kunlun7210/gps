@@ -141,6 +141,16 @@ dd, .reading strong { font-variant-numeric: tabular-nums; }
 footer { margin: 14px 4px 0; display: grid; color: var(--muted); font-size: .875rem; }
 summary { cursor: pointer; min-height: 44px; width: fit-content; padding-block: 11px; color: var(--accent); }
 details p { margin: 0; }
+.location-help {
+  margin-top: 9px;
+  padding-inline: 12px;
+  border-radius: 12px;
+  background: var(--inset);
+  color: var(--muted);
+  font-size: .875rem;
+}
+.location-help ol { margin: 0; padding: 0 0 12px 1.35em; }
+.location-help li + li { margin-top: 6px; }
 @media (min-width: 690px) {
   main { padding-top: max(30px, env(safe-area-inset-top)); }
   .dashboard { grid-template-columns: 1fr 1fr; gap: 18px; }

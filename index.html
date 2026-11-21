@@ -25,7 +25,7 @@
       <section class="compass panel" aria-labelledby="compass-title">
         <div class="section-head">
           <h2 id="compass-title">指南针</h2>
-          <span id="compass-mode" class="tag">待启用</span>
+          <span id="compass-mode" class="tag">等待读数</span>
         </div>
         <div class="dial">
           <canvas id="dial" width="600" height="600" aria-hidden="true"></canvas>
@@ -48,6 +48,14 @@
           <button id="copy" class="copy" type="button" disabled>复制坐标</button>
         </div>
         <p id="location-status" class="note" role="status">开启定位后持续更新，点「停止定位」结束。</p>
+        <details id="location-help" class="location-help" hidden>
+          <summary>检查 iPhone 定位权限</summary>
+          <ol>
+            <li>在「设置」→「隐私与安全性」→「定位服务」中开启定位服务。如果列表有「Safari 网站」或「定位仪」，允许使用时访问。</li>
+            <li>在 Safari 打开本页，从地址栏左侧页面菜单进入「网站设置」，将「位置」设为「询问」或「允许」。回到页面点「开始定位」。</li>
+            <li>若 Safari 能定位，而主屏幕版本仍被拒绝，检查「定位服务」列表中是否单独列出了「定位仪」。</li>
+          </ol>
+        </details>
         <dl class="metrics">
           <div><dt>海拔 <small>设备读数</small></dt><dd id="altitude">—</dd></div>
           <div><dt>水平精度</dt><dd id="accuracy">—</dd></div>
