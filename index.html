@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#eef1e9">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="方位仪">
+  <meta name="description" content="读取当前位置、海拔与手机朝向的离线网页应用。">
+  <title>方位仪</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icon-180.png">
+  <link rel="icon" href="./icon-192.png">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <main>
+    <header class="top">
+      <span class="brand"><span class="mark" aria-hidden="true">✦</span> 方位仪</span>
+      <span id="cache-status" class="cache" role="status">正在准备离线资源</span>
+    </header>
+    <div class="dashboard">
+      <section class="location panel" aria-labelledby="location-title">
+        <div class="section-head">
+          <h2 id="location-title">当前位置</h2>
+          <span id="location-mode" class="tag">待定位</span>
+        </div>
+        <dl class="coordinates">
+          <div><dt>纬度</dt><dd id="latitude">—</dd></div>
+          <div><dt>经度</dt><dd id="longitude">—</dd></div>
+        </dl>
+        <div class="actions">
+          <button id="locate" type="button">开始定位</button>
+          <button id="copy" class="copy" type="button" disabled>复制坐标</button>
+        </div>
+        <p id="location-status" class="note" role="status">开启定位后持续更新，点「停止定位」结束。</p>
+        <dl class="metrics">
+          <div><dt>海拔 <small>设备读数</small></dt><dd id="altitude">—</dd></div>
+          <div><dt>水平精度</dt><dd id="accuracy">—</dd></div>
+          <div><dt>海拔精度</dt><dd id="altitudeAccuracy">—</dd></div>
+          <div><dt>移动速度</dt><dd id="speed">—</dd></div>
+          <div><dt>移动方向</dt><dd id="course">—</dd></div>
+          <div><dt>定位时间</dt><dd id="time">—</dd></div>
+        </dl>
+      </section>
+      <section class="compass panel" aria-labelledby="compass-title">
+        <div class="section-head">
+          <h1 id="compass-title">指南针</h1>
+          <span id="compass-mode" class="tag">待启用</span>
+        </div>
+        <div class="dial">
+          <canvas id="dial" width="600" height="600" aria-hidden="true"></canvas>
+          <div class="reading"><strong id="bearing">—</strong><span id="direction">手机朝向</span></div>
+        </div>
+        <button id="compass" class="secondary" type="button">启用指南针</button>
+        <p id="compass-status" class="note" role="status">将手机平放，读取机身顶部指向。</p>
+      </section>
+    </div>
+    <footer>
+      <span>位置仅在本机使用</span>
+      <details id="install">
+        <summary>添加到 iPhone 主屏幕</summary>
+        <p>用 Safari 打开此页，点「分享」→「添加到主屏幕」。如看到「作为网页 App 打开」，请保持开启。添加后，联网从桌面打开一次，等到显示「离线缓存就绪」。</p>
+      </details>
+    </footer>
+  </main>
+</body>
+</html>

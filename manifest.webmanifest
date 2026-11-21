@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "方位仪",
+  "short_name": "方位仪",
+  "lang": "zh-CN",
+  "description": "随身查看定位、海拔和朝向。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eef1e9",
+  "theme_color": "#eef1e9",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
