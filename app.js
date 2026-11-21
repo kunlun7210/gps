@@ -1,9 +1,8 @@
 const byId = id => document.getElementById(id);
 const locateButton = byId('locate');
-const compassButton = byId('compass');
 const copyButton = byId('copy');
 const locationHelp = byId('location-help');
-const orientation = window.DeviceOrientationEvent;
+const orientation = window.isSecureContext ? window.DeviceOrientationEvent : undefined;
 const canvas = byId('dial');
 const ctx = canvas.getContext('2d');
 const directions = ['北', '东北', '东', '东南', '南', '西南', '西', '西北'];
@@ -11,7 +10,6 @@ const geoOptions = { enableHighAccuracy: true, maximumAge: 0, timeout: 16000 };
 let watch = null;
 let latest = null;
 let staleTimer;
-let compassStarted = false;
 let compassNeedsPermission = typeof orientation?.requestPermission === 'function';
 let compassTimer;
 
@@ -132,7 +130,7 @@ locateButton.addEventListener('click', async () => {
   }
   setText('location-mode', latest ? '上次读数' : '正在定位');
   locationHelp.hidden = true;
-  if (compassStarted && compassNeedsPermission) await requestCompassPermission();
+  if (compassNeedsPermission) await requestCompassPermission();
   setText('location-status', '正在请求位置，请允许定位权限。');
   locateButton.textContent = '停止定位';
   watch = navigator.geolocation.watchPosition(showLocation, locationError, geoOptions);
@@ -168,7 +166,6 @@ function handleOrientation(event) {
     return;
   }
   compassNeedsPermission = false;
-  compassButton.textContent = '停止指南针';
   const heading = degrees % 360;
   drawDial(heading);
   setText('bearing', roundedBearing(heading));
@@ -180,40 +177,17 @@ function handleOrientation(event) {
 }
 function startCompass() {
   window.addEventListener('deviceorientation', handleOrientation);
-  compassStarted = true;
   clearTimeout(compassTimer);
+  setText('compass-mode', '等待读数');
   if (compassNeedsPermission) {
-    compassButton.textContent = '允许指南针';
-    setText('compass-mode', '等待读数');
-    setText('compass-status', '正在尝试读取朝向。iPhone 需要授权时，点「允许指南针」或「开始定位」都可以。');
+    setText('compass-status', '正在尝试读取朝向。若 iPhone 需要授权，点「开始定位」并允许。');
   } else {
-    compassButton.textContent = '停止指南针';
-    setText('compass-mode', '等待读数');
     setText('compass-status', '将手机平放，等待读取朝向。');
     compassTimer = setTimeout(noHeading, 4500);
   }
 }
 
-compassButton.addEventListener('click', async () => {
-  if (compassStarted && !compassNeedsPermission) {
-    window.removeEventListener('deviceorientation', handleOrientation);
-    clearTimeout(compassTimer);
-    compassStarted = false;
-    drawDial(null);
-    setText('bearing', '—');
-    setText('direction', '手机朝向');
-    setText('compass-mode', '已停止');
-    setText('compass-status', '将手机平放，读取机身顶部指向。');
-    compassButton.textContent = '启用指南针';
-    return;
-  }
-
-  if (compassNeedsPermission) await requestCompassPermission();
-  else startCompass();
-});
-
 async function requestCompassPermission() {
-  compassButton.disabled = true;
   locateButton.disabled = true;
   try {
     const permission = await orientation.requestPermission();
@@ -222,16 +196,15 @@ async function requestCompassPermission() {
     startCompass();
   } catch {
     setText('compass-mode', '未授权');
-    setText('compass-status', '未取得运动与方向权限。可重新打开本页后再试。');
+    setText('compass-status', '未取得运动与方向权限。可重新打开本页后，再点「开始定位」。');
   } finally {
-    compassButton.disabled = false;
     locateButton.disabled = false;
   }
 }
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
-    if (compassStarted && !compassNeedsPermission) {
+    if (orientation && !compassNeedsPermission) {
       clearTimeout(compassTimer);
       noHeading();
     }
@@ -257,10 +230,9 @@ async function prepareOffline() {
 }
 
 drawDial(null);
-if (window.isSecureContext && orientation) {
+if (orientation) {
   startCompass();
 } else {
-  compassButton.disabled = true;
   setText('compass-mode', '不可用');
   setText('compass-status', '当前环境无法读取朝向，请用 iPhone Safari 打开 HTTPS 页面。');
 }

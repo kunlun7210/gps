@@ -106,14 +106,6 @@ button {
 button:active { filter: brightness(.91); }
 button:disabled { color: var(--muted); background: var(--inset); cursor: default; }
 button:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-.compass button:focus-visible { outline-color: #abd1ff; }
-button.secondary {
-  align-self: center;
-  padding-inline: 20px;
-  background: #a9ceff;
-  color: #102441;
-}
-button.secondary:disabled { background: #334763; color: #dee9fb; }
 .note { margin: 9px 0 0; font-size: .875rem; color: var(--muted); }
 .compass .note { color: #c4d5ef; text-align: center; }
 dl, dd { margin: 0; }
