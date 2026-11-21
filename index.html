@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#eef1e9">
+  <meta name="theme-color" content="#f3f6fb" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#10141e" media="(prefers-color-scheme: dark)">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="方位仪">
   <meta name="description" content="读取当前位置、海拔与手机朝向的离线网页应用。">
@@ -17,10 +18,22 @@
 <body>
   <main>
     <header class="top">
-      <span class="brand"><span class="mark" aria-hidden="true">✦</span> 方位仪</span>
+      <h1 class="brand"><img src="./icon-180.png" width="36" height="36" alt="">方位仪</h1>
       <span id="cache-status" class="cache" role="status">正在准备离线资源</span>
     </header>
     <div class="dashboard">
+      <section class="compass panel" aria-labelledby="compass-title">
+        <div class="section-head">
+          <h2 id="compass-title">指南针</h2>
+          <span id="compass-mode" class="tag">待启用</span>
+        </div>
+        <div class="dial">
+          <canvas id="dial" width="600" height="600" aria-hidden="true"></canvas>
+          <div class="reading"><strong id="bearing">—</strong><span id="direction">手机朝向</span></div>
+        </div>
+        <button id="compass" class="secondary" type="button">启用指南针</button>
+        <p id="compass-status" class="note" role="status">将手机平放，读取机身顶部指向。</p>
+      </section>
       <section class="location panel" aria-labelledby="location-title">
         <div class="section-head">
           <h2 id="location-title">当前位置</h2>
@@ -43,18 +56,6 @@
           <div><dt>移动方向</dt><dd id="course">—</dd></div>
           <div><dt>定位时间</dt><dd id="time">—</dd></div>
         </dl>
-      </section>
-      <section class="compass panel" aria-labelledby="compass-title">
-        <div class="section-head">
-          <h1 id="compass-title">指南针</h1>
-          <span id="compass-mode" class="tag">待启用</span>
-        </div>
-        <div class="dial">
-          <canvas id="dial" width="600" height="600" aria-hidden="true"></canvas>
-          <div class="reading"><strong id="bearing">—</strong><span id="direction">手机朝向</span></div>
-        </div>
-        <button id="compass" class="secondary" type="button">启用指南针</button>
-        <p id="compass-status" class="note" role="status">将手机平放，读取机身顶部指向。</p>
       </section>
     </div>
     <footer>

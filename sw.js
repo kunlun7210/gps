@@ -1,5 +1,5 @@
 const cachePrefix = 'field-compass:' + self.registration.scope + ':';
-const cacheName = cachePrefix + 'v2';
+const cacheName = cachePrefix + 'v3';
 const root = new URL('./', self.registration.scope).href;
 const entry = new URL('index.html', root).href;
 const assets = [

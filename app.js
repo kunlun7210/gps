@@ -30,10 +30,13 @@ function drawDial(degrees) {
   ctx.clearRect(0, 0, 600, 600);
   ctx.save();
   ctx.translate(300, 300);
-  ctx.strokeStyle = '#527663';
+  ctx.strokeStyle = '#425979';
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.arc(0, 0, 235, 0, 2 * Math.PI);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0, 0, 156, 0, 2 * Math.PI);
   ctx.stroke();
 
   for (let tick = 0; tick < 72; tick += 1) {
@@ -41,7 +44,7 @@ function drawDial(degrees) {
     ctx.rotate((tick * 5 - (degrees ?? 0)) * Math.PI / 180);
     const major = tick % 6 === 0;
     ctx.lineWidth = major ? 2.6 : 1.3;
-    ctx.strokeStyle = major ? '#b1cdbb' : '#709482';
+    ctx.strokeStyle = major ? '#afc5e5' : '#597396';
     ctx.beginPath();
     ctx.moveTo(0, -248);
     ctx.lineTo(0, major ? -268 : -257);
@@ -50,13 +53,13 @@ function drawDial(degrees) {
   }
   for (let cardinal = 0; cardinal < 4; cardinal += 1) {
     const angle = (cardinal * 90 - (degrees ?? 0)) * Math.PI / 180;
-    ctx.font = '600 28px -apple-system, sans-serif';
+    ctx.font = '600 29px -apple-system, PingFang SC, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = cardinal === 0 ? '#dcf79d' : '#d7e7de';
-    ctx.fillText(['N', 'E', 'S', 'W'][cardinal], 196 * Math.sin(angle), -196 * Math.cos(angle));
+    ctx.fillStyle = cardinal === 0 ? '#8fbdff' : '#d9e6f9';
+    ctx.fillText(directions[cardinal * 2], 196 * Math.sin(angle), -196 * Math.cos(angle));
   }
-  ctx.fillStyle = degrees === null ? '#9eb4a6' : '#dcf79d';
+  ctx.fillStyle = degrees === null ? '#94acd0' : '#75b8ff';
   ctx.beginPath();
   ctx.moveTo(-10, -288);
   ctx.lineTo(10, -288);
