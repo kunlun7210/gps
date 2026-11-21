@@ -3,6 +3,8 @@ const locateButton = byId('locate');
 const copyButton = byId('copy');
 const locationHelp = byId('location-help');
 const orientation = window.isSecureContext ? window.DeviceOrientationEvent : undefined;
+const geolocation = window.isSecureContext ? navigator.geolocation : undefined;
+const autoLocationKey = 'gps:auto-location:' + new URL('./', location.href).pathname;
 const canvas = byId('dial');
 const ctx = canvas.getContext('2d');
 const directions = ['北', '东北', '东', '东南', '南', '西南', '西', '西北'];
@@ -10,6 +12,9 @@ const geoOptions = { enableHighAccuracy: true, maximumAge: 0, timeout: 16000 };
 let watch = null;
 let latest = null;
 let staleTimer;
+let locationManuallyControlled = false;
+let autoLocationRemembered = false;
+let compassPermissionDeclined = false;
 let compassNeedsPermission = typeof orientation?.requestPermission === 'function';
 let compassTimer;
 
@@ -70,6 +75,11 @@ function drawDial(degrees) {
   ctx.restore();
 }
 
+function syncLocateButton() {
+  const needsDirection = compassNeedsPermission && !compassPermissionDeclined;
+  setText('locate', watch === null ? '开始定位' : needsDirection ? '允许方向' : '停止定位');
+}
+
 function expireLocation() {
   if (watch === null) return;
   setText('location-mode', '上次读数');
@@ -78,6 +88,14 @@ function expireLocation() {
 function showLocation(position) {
   const c = position.coords;
   if (!Number.isFinite(c.latitude) || !Number.isFinite(c.longitude)) return;
+  if (!autoLocationRemembered) {
+    autoLocationRemembered = true;
+    try {
+      localStorage.setItem(autoLocationKey, '1');
+    } catch {
+      // Browser permission can still enable automatic location when storage is unavailable.
+    }
+  }
   latest = position;
   locationHelp.hidden = true;
   setText('latitude', format(c.latitude, 6, '°'));
@@ -99,18 +117,27 @@ function showLocation(position) {
 }
 
 function stopLocation(mode, message) {
-  if (watch !== null) navigator.geolocation.clearWatch(watch);
+  if (watch !== null) geolocation.clearWatch(watch);
   watch = null;
   clearTimeout(staleTimer);
-  locateButton.textContent = '开始定位';
+  syncLocateButton();
   setText('location-mode', mode);
   setText('location-status', message);
 }
+function locationDenied() {
+  if (autoLocationRemembered) {
+    autoLocationRemembered = false;
+    try {
+      localStorage.removeItem(autoLocationKey);
+    } catch {}
+  }
+  stopLocation('未授权', '当前浏览器未允许访问位置。修改权限后，点「开始定位」重试。');
+  locationHelp.hidden = false;
+  locationHelp.open = true;
+}
 function locationError(error) {
   if (error.code === 1) {
-    stopLocation('未授权', '当前浏览器未允许访问位置。修改权限后，点「开始定位」重试。');
-    locationHelp.hidden = false;
-    locationHelp.open = true;
+    locationDenied();
     return;
   }
   clearTimeout(staleTimer);
@@ -119,21 +146,45 @@ function locationError(error) {
     ? '定位超时，正在等待新读数。到开阔处可能更容易定位。'
     : '目前无法取得位置，正在等待新读数。');
 }
+function startLocation() {
+  setText('location-mode', latest ? '上次读数' : '正在定位');
+  setText('location-status', '正在读取位置。如有系统提示，请允许定位。');
+  locationHelp.hidden = true;
+  watch = geolocation.watchPosition(showLocation, locationError, geoOptions);
+  syncLocateButton();
+}
+
+async function restoreLocation() {
+  if (!geolocation) return;
+  let permission;
+  try {
+    autoLocationRemembered = localStorage.getItem(autoLocationKey) === '1';
+  } catch {}
+  try {
+    permission = (await navigator.permissions?.query({ name: 'geolocation' }))?.state;
+  } catch {}
+
+  if (locationManuallyControlled) return;
+  if (permission === 'denied') locationDenied();
+  else if (permission === 'granted' || autoLocationRemembered) startLocation();
+}
+
 locateButton.addEventListener('click', async () => {
+  locationManuallyControlled = true;
   if (watch !== null) {
-    stopLocation('已停止', latest ? '保留上次读数，点「开始定位」可继续。' : '点「开始定位」可重试。');
+    if (compassNeedsPermission && !compassPermissionDeclined) {
+      await requestCompassPermission();
+    } else {
+      stopLocation('已停止', latest ? '保留上次读数，点「开始定位」可继续。' : '点「开始定位」可重试。');
+    }
     return;
   }
-  if (!window.isSecureContext || !navigator.geolocation) {
+  if (!geolocation) {
     setText('location-status', '此页面无法使用定位，请在 Safari 中打开 HTTPS 版本。');
     return;
   }
-  setText('location-mode', latest ? '上次读数' : '正在定位');
-  locationHelp.hidden = true;
   if (compassNeedsPermission) await requestCompassPermission();
-  setText('location-status', '正在请求位置，请允许定位权限。');
-  locateButton.textContent = '停止定位';
-  watch = navigator.geolocation.watchPosition(showLocation, locationError, geoOptions);
+  startLocation();
 });
 
 copyButton.addEventListener('click', async () => {
@@ -165,7 +216,10 @@ function handleOrientation(event) {
     noHeading();
     return;
   }
-  compassNeedsPermission = false;
+  if (compassNeedsPermission) {
+    compassNeedsPermission = false;
+    syncLocateButton();
+  }
   const heading = degrees % 360;
   drawDial(heading);
   setText('bearing', roundedBearing(heading));
@@ -180,7 +234,7 @@ function startCompass() {
   clearTimeout(compassTimer);
   setText('compass-mode', '等待读数');
   if (compassNeedsPermission) {
-    setText('compass-status', '正在尝试读取朝向。若 iPhone 需要授权，点「开始定位」并允许。');
+    setText('compass-status', '正在尝试读取朝向。若 iPhone 要求再次授权，请轻点定位栏按钮。');
   } else {
     setText('compass-status', '将手机平放，等待读取朝向。');
     compassTimer = setTimeout(noHeading, 4500);
@@ -195,10 +249,12 @@ async function requestCompassPermission() {
     compassNeedsPermission = false;
     startCompass();
   } catch {
+    compassPermissionDeclined = true;
     setText('compass-mode', '未授权');
     setText('compass-status', '未取得运动与方向权限。可重新打开本页后，再点「开始定位」。');
   } finally {
     locateButton.disabled = false;
+    syncLocateButton();
   }
 }
 
@@ -236,6 +292,7 @@ if (orientation) {
   setText('compass-mode', '不可用');
   setText('compass-status', '当前环境无法读取朝向，请用 iPhone Safari 打开 HTTPS 页面。');
 }
+restoreLocation();
 prepareOffline();
 if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) {
   byId('install').hidden = true;
