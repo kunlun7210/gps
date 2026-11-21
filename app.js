@@ -121,7 +121,7 @@ function locationError(error) {
     ? '定位超时，正在等待新读数。到开阔处可能更容易定位。'
     : '目前无法取得位置，正在等待新读数。');
 }
-locateButton.addEventListener('click', () => {
+locateButton.addEventListener('click', async () => {
   if (watch !== null) {
     stopLocation('已停止', latest ? '保留上次读数，点「开始定位」可继续。' : '点「开始定位」可重试。');
     return;
@@ -132,6 +132,7 @@ locateButton.addEventListener('click', () => {
   }
   setText('location-mode', latest ? '上次读数' : '正在定位');
   locationHelp.hidden = true;
+  if (compassStarted && compassNeedsPermission) await requestCompassPermission();
   setText('location-status', '正在请求位置，请允许定位权限。');
   locateButton.textContent = '停止定位';
   watch = navigator.geolocation.watchPosition(showLocation, locationError, geoOptions);
@@ -184,7 +185,7 @@ function startCompass() {
   if (compassNeedsPermission) {
     compassButton.textContent = '允许指南针';
     setText('compass-mode', '等待读数');
-    setText('compass-status', '正在尝试读取朝向。首次使用时，请允许访问运动与方向。');
+    setText('compass-status', '正在尝试读取朝向。iPhone 需要授权时，点「允许指南针」或「开始定位」都可以。');
   } else {
     compassButton.textContent = '停止指南针';
     setText('compass-mode', '等待读数');
@@ -207,21 +208,26 @@ compassButton.addEventListener('click', async () => {
     return;
   }
 
+  if (compassNeedsPermission) await requestCompassPermission();
+  else startCompass();
+});
+
+async function requestCompassPermission() {
   compassButton.disabled = true;
+  locateButton.disabled = true;
   try {
-    if (compassNeedsPermission) {
-      const permission = await orientation.requestPermission();
-      if (permission !== 'granted') throw new Error('permission denied');
-      compassNeedsPermission = false;
-    }
+    const permission = await orientation.requestPermission();
+    if (permission !== 'granted') throw new Error('permission denied');
+    compassNeedsPermission = false;
     startCompass();
   } catch {
     setText('compass-mode', '未授权');
-    setText('compass-status', '未取得运动与方向权限。请在 iPhone Safari 打开本页，再试一次。');
+    setText('compass-status', '未取得运动与方向权限。可重新打开本页后再试。');
   } finally {
     compassButton.disabled = false;
+    locateButton.disabled = false;
   }
-});
+}
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
