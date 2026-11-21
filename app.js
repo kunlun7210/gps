@@ -13,7 +13,8 @@ let compassStarted = false;
 let compassTimer;
 
 function setText(id, text) {
-  byId(id).textContent = text;
+  const element = byId(id);
+  if (element.textContent !== text) element.textContent = text;
 }
 function format(value, decimals, unit) {
   return Number.isFinite(value) ? value.toFixed(decimals) + unit : '—';
@@ -150,9 +151,11 @@ function handleOrientation(event) {
   const degrees = event.webkitCompassHeading;
   const accuracy = event.webkitCompassAccuracy;
   if (!Number.isFinite(degrees) || degrees < 0 || degrees > 360) return;
-  if (Number.isFinite(accuracy) && accuracy < 0) return;
   clearTimeout(compassTimer);
-  compassTimer = setTimeout(noHeading, 4500);
+  if (Number.isFinite(accuracy) && accuracy < 0) {
+    noHeading();
+    return;
+  }
   const heading = degrees % 360;
   drawDial(heading);
   setText('bearing', roundedBearing(heading));
@@ -202,7 +205,13 @@ compassButton.addEventListener('click', async () => {
 });
 
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) return;
+  if (document.hidden) {
+    if (compassStarted) {
+      clearTimeout(compassTimer);
+      noHeading();
+    }
+    return;
+  }
   if (latest && Date.now() - latest.timestamp >= 45000) expireLocation();
 });
 
